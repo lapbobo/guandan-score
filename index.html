@@ -1193,7 +1193,7 @@
                 currentBanker: gameState.currentBanker,
                 players: gameState.players
             });
-            if (!gameState.currentBanker) return '-';
+            if (gameState.currentBanker === null || gameState.currentBanker === undefined) return '-';
             const player = gameState.players.find(p => p.id === gameState.currentBanker);
             const result = player ? player.name : '-';
             console.log('getCurrentBankerName result:', result);
