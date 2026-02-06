@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>三人掼蛋计分牌</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #fff5f8;
+            --bg-secondary: #fff;
+            --bg-card: #ffffff;
+            --bg-card-hover: #fff0f5;
+            --text-primary: #2d1f3d;
+            --text-secondary: #8b7b99;
+            --accent: #ff6b9d;
+            --accent-hover: #ff85b5;
+            --gold: #ffb347;
+            --success: #4ecdc4;
+            --purple: #c77dff;
+            --blue: #74c0fc;
+            --pink: #ff6b9d;
+            --orange: #ffa94d;
+            --cyan: #7dd3fc;
+            --border-radius: 20px;
+            --shadow-soft: 0 8px 32px rgba(255, 107, 157, 0.15);
+            --shadow-glow: 0 4px 20px rgba(255, 107, 157, 0.25);
+            --shadow-gold: 0 4px 20px rgba(255, 179, 71, 0.25);
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #fff5f8 0%, #ffeef4 50%, #fff0f5 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 100px;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255, 107, 157, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(199, 125, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(116, 192, 252, 0.08) 0%, transparent 70%),
+                radial-gradient(circle at 30% 70%, rgba(255, 179, 71, 0.06) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 50%, #ffb3c6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .dashboard {
+            background: linear-gradient(145deg, #ffffff, #fff8fa);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-soft);
+            border: 2px solid rgba(255, 107, 157, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b9d, #ff8fab, #ffb3c6, #ff6b9d);
+            background-size: 300% 100%;
+            animation: gradientMove 3s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .current-level {
+            text-align: center;
+            padding: 24px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .current-level-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .current-level-value {
+            font-size: 64px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #ff6b9d, #ff8fab);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 0 20px rgba(255, 107, 157, 0.3));
+        }
+
+        .current-banker {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .current-banker span {
+            color: #ffb347;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(255, 179, 71, 0.3);
+        }
+
+        .players-list {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            justify-content: space-between;
+        }
+
+        .player-card {
+            background: linear-gradient(145deg, #ffffff, #fff8fc);
+            border-radius: var(--border-radius);
+            padding: 14px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(255, 107, 157, 0.1);
+            flex: 1;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.08);
+        }
+
+        .player-card:hover {
+            background: linear-gradient(145deg, #ffffff, #ffeef4);
+            transform: translateY(-2px);
+            border-color: rgba(255, 107, 157, 0.2);
+            box-shadow: 0 6px 16px rgba(255, 107, 157, 0.15);
+        }
+
+        .player-card:active {
+            transform: scale(0.95);
+        }
+
+        .player-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-avatar::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border-radius: 50%;
+            background: inherit;
+            filter: blur(10px);
+            opacity: 0.6;
+            z-index: -1;
+        }
+
+        .player-avatar:active {
+            transform: scale(0.95);
+        }
+
+        .player-info {
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .player-name {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            cursor: pointer;
+            display: inline-block;
+            transition: opacity 0.2s;
+            line-height: 1.2;
+            padding: 0 4px;
+        }
+
+        .player-name:active {
+            opacity: 0.7;
+        }
+
+        .player-level {
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .player-level.banking {
+            text-shadow: 0 0 15px rgba(255, 71, 87, 0.6);
+        }
+
+        .history-section {
+            margin-top: 24px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .history-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            font-size: 13px;
+            padding: 7px 16px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-small.clear {
+            background: linear-gradient(135deg, #ff6b9d, #ff8fab);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+        }
+
+        .btn-small.undo {
+            background: #fff8fa;
+            color: var(--text-primary);
+            border: 2px solid rgba(255, 107, 157, 0.2);
+        }
+
+        .btn-small:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-small:active {
+            transform: scale(0.95);
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .history-item {
+            background: linear-gradient(145deg, #ffffff, #fff8fa);
+            border-radius: var(--border-radius);
+            padding: 14px 16px;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 107, 157, 0.1);
+            box-shadow: 0 2px 8px rgba(255, 107, 157, 0.06);
+        }
+
+        .history-item:active {
+            transform: scale(0.98);
+        }
+
+        .history-round {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .history-round-info {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .history-level {
+            font-size: 16px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #ffb347, #ffa94d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .history-players {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .history-player {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .history-player-avatar {
+            font-size: 18px;
+        }
+
+        .history-player-info {
+            flex: 1;
+            font-weight: 400;
+        }
+
+        .history-player-rank {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .rank-up {
+            background: linear-gradient(135deg, #ffb347, #ffa94d);
+            color: #2d1f3d;
+            box-shadow: 0 2px 8px rgba(255, 179, 71, 0.25);
+        }
+
+        .rank-middle {
+            background: linear-gradient(135deg, #4ecdc4, #45b7aa);
+            color: #2d1f3d;
+            box-shadow: 0 2px 8px rgba(78, 205, 196, 0.25);
+        }
+
+        .rank-down {
+            background: #f8f4fa;
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 107, 157, 0.15);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b9d, #ff8fab, #ffb3c6);
+            border: none;
+            color: white;
+            font-size: 36px;
+            font-weight: 200;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(255, 107, 157, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            line-height: 1;
+        }
+
+        .fab::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b9d, #ffb3c6);
+            filter: blur(15px);
+            opacity: 0.6;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+
+        .fab:hover {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 10px 30px rgba(255, 71, 87, 0.6);
+        }
+
+        .fab:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 245, 248, 0.9);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: linear-gradient(180deg, #ffffff, #fff8fa);
+            width: 100%;
+            max-width: 420px;
+            border-radius: 28px 28px 0 0;
+            padding: 24px 20px 40px;
+            transform: translateY(100%);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 85vh;
+            overflow-y: auto;
+            border-top: 2px solid rgba(255, 107, 157, 0.15);
+            box-shadow: 0 -8px 32px rgba(255, 107, 157, 0.15);
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #2d1f3d, #ff6b9d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal-close {
+            background: #fff8fa;
+            border: 2px solid rgba(255, 107, 157, 0.2);
+            color: var(--text-primary);
+            font-size: 28px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+
+        .modal-close:active {
+            background: #ffeef4;
+            transform: scale(0.95);
+        }
+
+        .step-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .step-indicator {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(135deg, var(--accent), var(--pink));
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 22px;
+            font-size: 13px;
+            margin-right: 8px;
+            font-weight: 700;
+        }
+
+        .select-player {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 107, 157, 0.15);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(255, 107, 157, 0.06);
+        }
+
+        .select-player:active {
+            transform: scale(0.98);
+        }
+
+        .select-player.selected-up {
+            border-color: #ffb347;
+            background: #fff8f0;
+            box-shadow: 0 4px 12px rgba(255, 179, 71, 0.25);
+        }
+
+        .select-player.selected-middle {
+            border-color: #4ecdc4;
+            background: #f0fdfb;
+            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.25);
+        }
+
+        .select-player.selected-down {
+            border-color: #8b7b99;
+            background: #f8f4fa;
+            opacity: 0.6;
+        }
+
+        .select-player.disabled {
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        .select-player-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .select-player-info {
+            flex: 1;
+        }
+
+        .select-player-name {
+            font-size: 17px;
+            font-weight: 500;
+        }
+
+        .select-player-badge {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-up {
+            background: linear-gradient(135deg, #ffb347, #ffa94d);
+            color: #2d1f3d;
+            box-shadow: 0 2px 8px rgba(255, 179, 71, 0.25);
+        }
+
+        .badge-middle {
+            background: linear-gradient(135deg, #4ecdc4, #45b7aa);
+            color: #2d1f3d;
+            box-shadow: 0 2px 8px rgba(78, 205, 196, 0.25);
+        }
+
+        .badge-down {
+            background: #f8f4fa;
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 107, 157, 0.15);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #ff6b9d, #ff8fab);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            box-shadow: 0 8px 20px rgba(255, 107, 157, 0.35);
+            letter-spacing: 0.3px;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none;
+            background: linear-gradient(135deg, #e0e0e0, #d0d0d0);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 16px;
+            background: #ffffff;
+            border: 2px solid rgba(255, 107, 157, 0.2);
+            border-radius: 14px;
+            color: var(--text-primary);
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-weight: 400;
+        }
+
+        .input-group input:focus {
+            border-color: #ff6b9d;
+            background: #fff8fa;
+            box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+        }
+
+        .input-group input::placeholder {
+            color: rgba(139, 123, 153, 0.5);
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            padding: 8px 0;
+        }
+
+        .emoji-item {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 107, 157, 0.15);
+            box-shadow: 0 2px 8px rgba(255, 107, 157, 0.08);
+        }
+
+        .emoji-item:active {
+            transform: scale(0.9);
+        }
+
+        .emoji-item.selected {
+            background: #ff6b9d;
+            border-color: #ff6b9d;
+            box-shadow: 0 0 20px rgba(255, 107, 157, 0.4);
+            transform: scale(1.1);
+        }
+
+        .confirm-dialog {
+            text-align: center;
+            padding: 24px 0;
+        }
+
+        .confirm-dialog p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .dialog-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-dialog {
+            flex: 1;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel {
+            background: #fff8fa;
+            color: var(--text-primary);
+            border: 2px solid rgba(255, 107, 157, 0.2);
+        }
+
+        .btn-confirm {
+            background: linear-gradient(135deg, #ff6b9d, #ff8fab);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+        }
+
+        .btn-dialog:active {
+            transform: scale(0.98);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-in {
+            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .reset-btn {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: #ffffff;
+            border: 2px solid rgba(255, 107, 157, 0.2);
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            z-index: 50;
+            box-shadow: 0 2px 8px rgba(255, 107, 157, 0.1);
+        }
+
+        .reset-btn:active {
+            background: #fff8fa;
+            transform: scale(0.95);
+        }
+
+        @media (max-width: 360px) {
+            .players-list {
+                gap: 8px;
+            }
+            
+            .player-card {
+                padding: 12px 8px;
+            }
+            
+            .player-avatar {
+                width: 48px;
+                height: 48px;
+                font-size: 24px;
+            }
+            
+            .player-name {
+                font-size: 12px;
+            }
+            
+            .player-level {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="reset-btn" onclick="showResetConfirm()">重置</button>
+    
+    <div class="container">
+        <header>
+            <h1>三人掼蛋计分牌</h1>
+            <p class="subtitle">简单好用的三人线下掼蛋计分工具</p>
+        </header>
+
+        <div class="dashboard">
+            <div class="current-level">
+                <div class="current-level-label">当前打级</div>
+                <div class="current-level-value" id="currentLevel">2</div>
+                <div class="current-banker">
+                    庄家（上一局上游）：<span id="currentBanker">-</span>
+                </div>
+            </div>
+
+            <div class="players-list" id="playersList">
+            </div>
+        </div>
+
+        <div class="history-section">
+            <div class="history-header">
+                <h2 class="history-title">历史记录</h2>
+                <div class="history-actions">
+                    <button class="btn-small undo" onclick="undoLastRound()" id="undoBtn" disabled>撤销</button>
+                    <button class="btn-small clear" onclick="showClearConfirm()">清空</button>
+                </div>
+            </div>
+            <div class="history-list" id="historyList">
+            </div>
+        </div>
+    </div>
+
+    <button class="fab" onclick="openRecordModal()">+</button>
+
+    <div class="modal" id="recordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">记一局</h3>
+                <button class="modal-close" onclick="closeModal('recordModal')">×</button>
+            </div>
+
+            <div class="step-label">
+                <span class="step-indicator">1</span>选择上游（第一名）
+            </div>
+            <div id="upstreamList"></div>
+
+            <div class="step-label" style="margin-top: 16px;">
+                <span class="step-indicator">2</span>选择中游（第二名）
+            </div>
+            <div id="middleList"></div>
+
+            <div class="step-label" style="margin-top: 16px;">
+                <span class="step-indicator">3</span>下游自动判定
+            </div>
+            <div id="downstreamPreview" style="background: rgba(255, 255, 255, 0.04); border-radius: 16px; padding: 16px; border: 2px dashed rgba(255, 255, 255, 0.2); text-align: center; color: var(--text-secondary); font-size: 14px;">
+                请先选择上游和中游
+            </div>
+
+            <button class="btn-primary" onclick="submitRound()" id="submitBtn" disabled>确定</button>
+        </div>
+    </div>
+
+    <div class="modal" id="editNameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">修改昵称</h3>
+                <button class="modal-close" onclick="closeModal('editNameModal')">×</button>
+            </div>
+            <div class="input-group">
+                <label>玩家昵称</label>
+                <input type="text" id="editNameInput" maxlength="10" placeholder="输入新昵称">
+            </div>
+            <button class="btn-primary" onclick="savePlayerName()">保存</button>
+        </div>
+    </div>
+
+    <div class="modal" id="emojiModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">选择头像</h3>
+                <button class="modal-close" onclick="closeModal('emojiModal')">×</button>
+            </div>
+            <div class="emoji-grid" id="emojiGrid"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="confirmTitle">确认</h3>
+                <button class="modal-close" onclick="closeModal('confirmModal')">×</button>
+            </div>
+            <div class="confirm-dialog">
+                <p id="confirmMessage">确定要执行此操作吗？</p>
+                <div class="dialog-buttons">
+                    <button class="btn-dialog btn-cancel" onclick="closeModal('confirmModal')">取消</button>
+                    <button class="btn-dialog btn-confirm" onclick="executeConfirm()">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const EMOJI_LIST = [
+            '🍭', '👻', '🦈', '🎯', '🔥', '⭐', '🌟', '💎', '🏆', '🎪',
+            '🎨', '🎭', '🎸', '🎹', '🎺', '🎻', '🎬', '🎮', '🎲', '🧩',
+            '🧸', '🎁', '🎈', '🎉', '🎊', '💰', '💵', '💳', '💎', '🪙'
+        ];
+
+        const EMOJI_GRADIENTS = {
+            '🍭': 'linear-gradient(135deg, #ff6b9d, #ff8fab)',
+            '👻': 'linear-gradient(135deg, #a8a8a8, #c4c4c4)',
+            '🦈': 'linear-gradient(135deg, #0984e3, #74b9ff)',
+            '🎯': 'linear-gradient(135deg, #e17055, #ff7675)',
+            '🔥': 'linear-gradient(135deg, #ff9f43, #ee5a24)',
+            '⭐': 'linear-gradient(135deg, #f9ca24, #f39c12)',
+            '🌟': 'linear-gradient(135deg, #f39c12, #e74c3c)',
+            '💎': 'linear-gradient(135deg, #00d2d3, #74c0fc)',
+            '🏆': 'linear-gradient(135deg, #ffd32a, #ffb347)',
+            '🎪': 'linear-gradient(135deg, #fd79a8, #e84393)',
+            '🎨': 'linear-gradient(135deg, #a29bfe, #6c5ce7)',
+            '🎭': 'linear-gradient(135deg, #2d3436, #636e72)',
+            '🎸': 'linear-gradient(135deg, #e056fd, #c77dff)',
+            '🎹': 'linear-gradient(135deg, #30336b, #686de0)',
+            '🎺': 'linear-gradient(135deg, #f39c12, #e67e22)',
+            '🎻': 'linear-gradient(135deg, #8e44ad, #a855f7)',
+            '🎬': 'linear-gradient(135deg, #ff6b6b, #ff8fab)',
+            '🎮': 'linear-gradient(135deg, #74c0fc, #00a8ff)',
+            '🎲': 'linear-gradient(135deg, #4ecdc4, #45b7aa)',
+            '🧩': 'linear-gradient(135deg, #4ecdc4, #26af61)',
+            '🧸': 'linear-gradient(135deg, #ffb347, #ff9f43)',
+            '🎁': 'linear-gradient(135deg, #ff6b9d, #ff85b5)',
+            '🎈': 'linear-gradient(135deg, #ff9ff3, #c77dff)',
+            '🎉': 'linear-gradient(135deg, #ffeaa7, #ffb347)',
+            '🎊': 'linear-gradient(135deg, #ff8fab, #ff6b9d)',
+            '💰': 'linear-gradient(135deg, #26de81, #20bf6b)',
+            '💵': 'linear-gradient(135deg, #a8e6cf, #88d8b0)',
+            '💳': 'linear-gradient(135deg, #74c0fc, #0984e3)',
+            '🪙': 'linear-gradient(135deg, #ffd32a, #ff9f43)'
+        };
+
+        const DEFAULT_PLAYERS = [
+            { id: 0, name: '甜大官', avatar: '🍭', level: 2 },
+            { id: 1, name: '万小布', avatar: '👻', level: 2 },
+            { id: 2, name: '李大鲨', avatar: '🦈', level: 2 }
+        ];
+
+        const STORAGE_KEY = 'guandan_score_data';
+
+        let gameState = {
+            players: JSON.parse(JSON.stringify(DEFAULT_PLAYERS)),
+            history: [],
+            currentRound: 0,
+            currentPlayerLevel: 2,
+            currentBanker: null
+        };
+
+        let selectedUpstream = null;
+        let selectedMiddle = null;
+        let editingPlayerId = null;
+        let confirmCallback = null;
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playClickSound() {
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {
+                console.log('Audio error:', e);
+            }
+        }
+
+        function playSelectSound() {
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.08);
+                
+                gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.08);
+            } catch (e) {
+                console.log('Audio error:', e);
+            }
+        }
+
+        function playSuccessSound() {
+            try {
+                const oscillator1 = audioContext.createOscillator();
+                const oscillator2 = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator1.connect(gainNode);
+                oscillator2.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator1.frequency.setValueAtTime(523.25, audioContext.currentTime);
+                oscillator1.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
+                oscillator1.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2);
+                
+                oscillator2.frequency.setValueAtTime(659.25, audioContext.currentTime);
+                oscillator2.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.1);
+                oscillator2.frequency.setValueAtTime(987.77, audioContext.currentTime + 0.2);
+                
+                gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                oscillator1.start(audioContext.currentTime);
+                oscillator2.start(audioContext.currentTime);
+                oscillator1.stop(audioContext.currentTime + 0.3);
+                oscillator2.stop(audioContext.currentTime + 0.3);
+            } catch (e) {
+                console.log('Audio error:', e);
+            }
+        }
+
+        function playModalOpenSound() {
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.12);
+                
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.12);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.12);
+            } catch (e) {
+                console.log('Audio error:', e);
+            }
+        }
+
+        function getAvatarGradient(emoji) {
+            return EMOJI_GRADIENTS[emoji] || 'linear-gradient(135deg, #ff4757, #ec4899)';
+        }
+
+        function getLevelColor(level) {
+            if (level <= 2) return '#ffb347';
+            if (level <= 4) return '#ff9f43';
+            if (level <= 6) return '#ff8fab';
+            if (level <= 8) return '#ff6b9d';
+            if (level <= 10) return '#ff6b6b';
+            if (level <= 12) return '#e84393';
+            return '#c77dff';
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                gameState = JSON.parse(saved);
+                ensurePlayersStructure();
+            }
+        }
+
+        function ensurePlayersStructure() {
+            if (!gameState.players || gameState.players.length !== 3) {
+                gameState.players = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
+            }
+            if (typeof gameState.currentRound !== 'number') {
+                gameState.currentRound = 0;
+            }
+            if (typeof gameState.currentPlayerLevel !== 'number') {
+                gameState.currentPlayerLevel = 2;
+            }
+            if (!Array.isArray(gameState.history)) {
+                gameState.history = [];
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
+        }
+
+        function resetData() {
+            gameState = {
+                players: JSON.parse(JSON.stringify(DEFAULT_PLAYERS)),
+                history: [],
+                currentRound: 0,
+                currentPlayerLevel: 2,
+                currentBanker: null
+            };
+            saveData();
+            render();
+        }
+
+        function getCurrentBankerName() {
+            if (!gameState.currentBanker) return '-';
+            const player = gameState.players.find(p => p.id === gameState.currentBanker);
+            return player ? player.name : '-';
+        }
+
+        function render() {
+            renderDashboard();
+            renderPlayers();
+            renderHistory();
+            updateUndoButton();
+        }
+
+        function renderDashboard() {
+            document.getElementById('currentLevel').textContent = gameState.currentPlayerLevel;
+            document.getElementById('currentBanker').textContent = getCurrentBankerName();
+        }
+
+        function renderPlayers() {
+            const container = document.getElementById('playersList');
+            container.innerHTML = '';
+
+            gameState.players.forEach(player => {
+                const isBanking = gameState.currentBanker === player.id;
+                const levelColor = getLevelColor(player.level);
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.innerHTML = `
+                    <div class="player-avatar" style="background: ${getAvatarGradient(player.avatar)};" onclick="openEmojiModal(${player.id})">${player.avatar}</div>
+                    <div class="player-info">
+                        <div class="player-name" onclick="openEditNameModal(${player.id})">${player.name}</div>
+                        <div class="player-level ${isBanking ? 'banking' : ''}" style="color: ${levelColor};">${player.level}级</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyList');
+            container.innerHTML = '';
+
+            if (gameState.history.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>还没有记录，点击下方按钮开始记分</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const reversedHistory = [...gameState.history].reverse();
+            reversedHistory.forEach((round, index) => {
+                const realIndex = gameState.history.length - 1 - index;
+                const item = document.createElement('div');
+                item.className = 'history-item animate-in';
+                item.style.animationDelay = `${index * 0.05}s`;
+
+                item.innerHTML = `
+                    <div class="history-round">
+                        <span class="history-round-info">第 ${realIndex + 1} 局</span>
+                        <span class="history-level">打 ${round.level}级</span>
+                    </div>
+                    <div class="history-players">
+                        ${round.players.map(p => {
+                            const player = gameState.players.find(pl => pl.id === p.id);
+                            return `
+                                <div class="history-player">
+                                    <span class="history-player-avatar">${player ? player.avatar : '😊'}</span>
+                                    <span class="history-player-info">${player ? player.name : '未知'}</span>
+                                    <span class="history-player-rank rank-${p.rank}">${getRankLabel(p.rank)}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+
+                container.appendChild(item);
+            });
+        }
+
+        function getRankLabel(rank) {
+            switch(rank) {
+                case 'up': return '上游';
+                case 'middle': return '中游';
+                case 'down': return '下游';
+                default: return '';
+            }
+        }
+
+        function updateUndoButton() {
+            const btn = document.getElementById('undoBtn');
+            btn.disabled = gameState.history.length === 0;
+        }
+
+        function openRecordModal() {
+            playModalOpenSound();
+            console.log('openRecordModal called');
+            selectedUpstream = null;
+            selectedMiddle = null;
+            console.log('Selections reset:', { selectedUpstream, selectedMiddle });
+            renderPlayerSelection();
+            document.getElementById('recordModal').classList.add('active');
+            updateSubmitButton();
+        }
+
+        function renderPlayerSelection() {
+            console.log('renderPlayerSelection called', { selectedUpstream, selectedMiddle });
+            
+            const upstreamContainer = document.getElementById('upstreamList');
+            const middleContainer = document.getElementById('middleList');
+            const downstreamPreview = document.getElementById('downstreamPreview');
+            
+            upstreamContainer.innerHTML = '';
+            middleContainer.innerHTML = '';
+
+            gameState.players.forEach(player => {
+                const isUpSelected = selectedUpstream === player.id;
+                const isMiddleSelected = selectedMiddle === player.id;
+                const isUpDisabled = isMiddleSelected;
+                const isMiddleDisabled = isUpSelected;
+
+                console.log('Player:', player.name, 'isUpSelected:', isUpSelected, 'isMiddleSelected:', isMiddleSelected, 'isUpDisabled:', isUpDisabled, 'isMiddleDisabled:', isMiddleDisabled);
+
+                const upCard = createSelectablePlayer(player, 'up', isUpSelected, isUpDisabled);
+                const middleCard = createSelectablePlayer(player, 'middle', isMiddleSelected, isMiddleDisabled);
+
+                upstreamContainer.appendChild(upCard);
+                middleContainer.appendChild(middleCard);
+            });
+
+            updateDownstreamPreview();
+        }
+
+        function createSelectablePlayer(player, type, isSelected, isDisabled) {
+            const div = document.createElement('div');
+            div.className = `select-player ${isSelected ? `selected-${type}` : ''} ${isDisabled ? 'disabled' : ''}`;
+            div.innerHTML = `
+                <div class="select-player-avatar" style="background: ${getAvatarGradient(player.avatar)};">${player.avatar}</div>
+                <div class="select-player-info">
+                    <div class="select-player-name">${player.name}</div>
+                </div>
+                ${isSelected ? `<div class="select-player-badge badge-${type}">${type === 'up' ? '上游' : '中游'}</div>` : ''}
+            `;
+            
+            if (!isDisabled) {
+                div.onclick = () => selectPlayer(player.id, type);
+            }
+
+            return div;
+        }
+
+        function selectPlayer(playerId, type) {
+            playSelectSound();
+            console.log('selectPlayer called', { playerId, type, currentUpstream: selectedUpstream, currentMiddle: selectedMiddle });
+            
+            if (type === 'up') {
+                selectedUpstream = playerId;
+                if (selectedMiddle === playerId) {
+                    selectedMiddle = null;
+                }
+            } else {
+                selectedMiddle = playerId;
+                if (selectedUpstream === playerId) {
+                    selectedUpstream = null;
+                }
+            }
+            
+            console.log('After selection:', { selectedUpstream, selectedMiddle });
+            
+            renderPlayerSelection();
+            updateSubmitButton();
+        }
+
+        function updateDownstreamPreview() {
+            const preview = document.getElementById('downstreamPreview');
+            
+            console.log('updateDownstreamPreview called', { selectedUpstream, selectedMiddle });
+            
+            if (selectedUpstream !== null && selectedMiddle !== null && selectedUpstream !== selectedMiddle) {
+                const downstreamPlayer = gameState.players.find(
+                    p => p.id !== selectedUpstream && p.id !== selectedMiddle
+                );
+                if (downstreamPlayer) {
+                    console.log('Downstream player found:', downstreamPlayer.name);
+                    preview.innerHTML = `
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                            <span style="font-size: 28px;">${downstreamPlayer.avatar}</span>
+                            <span style="font-size: 16px; font-weight: 700; color: var(--text-primary);">${downstreamPlayer.name}</span>
+                            <span class="select-player-badge badge-down">下游</span>
+                        </div>
+                    `;
+                    preview.style.background = 'rgba(255, 255, 255, 0.08)';
+                    preview.style.border = '2px solid rgba(255, 255, 255, 0.15)';
+                }
+            } else {
+                preview.innerHTML = '请先选择上游和中游';
+                preview.style.background = 'rgba(255, 255, 255, 0.04)';
+                preview.style.border = '2px dashed rgba(255, 255, 255, 0.2)';
+            }
+        }
+
+        function updateSubmitButton() {
+            const btn = document.getElementById('submitBtn');
+            const isValid = selectedUpstream !== null && 
+                           selectedMiddle !== null && 
+                           selectedUpstream !== selectedMiddle;
+            btn.disabled = !isValid;
+            console.log('updateSubmitButton:', {
+                selectedUpstream,
+                selectedMiddle,
+                isValid,
+                buttonDisabled: btn.disabled
+            });
+        }
+
+        function submitRound() {
+            playSuccessSound();
+            console.log('submitRound called', { selectedUpstream, selectedMiddle });
+            
+            if (selectedUpstream === null || selectedMiddle === null) {
+                console.log('Selection incomplete');
+                return;
+            }
+            
+            if (selectedUpstream === selectedMiddle) {
+                console.log('Same player selected');
+                return;
+            }
+
+            console.log('Valid selection, processing round');
+
+            const downstreamId = gameState.players.find(
+                p => p.id !== selectedUpstream && p.id !== selectedMiddle
+            ).id;
+
+            const roundData = {
+                round: gameState.currentRound + 1,
+                level: gameState.currentPlayerLevel,
+                players: [
+                    { id: selectedUpstream, rank: 'up' },
+                    { id: selectedMiddle, rank: 'middle' },
+                    { id: downstreamId, rank: 'down' }
+                ]
+            };
+
+            const upstreamPlayer = gameState.players.find(p => p.id === selectedUpstream);
+            const middlePlayer = gameState.players.find(p => p.id === selectedMiddle);
+
+            console.log('Updating levels:', {
+                upstream: upstreamPlayer.name,
+                middle: middlePlayer.name,
+                upstreamLevel: upstreamPlayer.level,
+                middleLevel: middlePlayer.level
+            });
+
+            upstreamPlayer.level += 2;
+            middlePlayer.level += 1;
+
+            gameState.currentRound++;
+            gameState.history.push(roundData);
+            gameState.currentPlayerLevel = upstreamPlayer.level;
+            gameState.currentBanker = selectedUpstream;
+
+            console.log('Saving data and closing modal');
+            
+            saveData();
+            render();
+            closeModal('recordModal');
+        }
+
+        function undoLastRound() {
+            playClickSound();
+            if (gameState.history.length === 0) return;
+
+            const lastRound = gameState.history.pop();
+            
+            gameState.players.forEach(player => {
+                const playerData = lastRound.players.find(p => p.id === player.id);
+                if (playerData) {
+                    switch(playerData.rank) {
+                        case 'up':
+                            player.level -= 2;
+                            break;
+                        case 'middle':
+                            player.level -= 1;
+                            break;
+                        case 'down':
+                            break;
+                    }
+                }
+            });
+
+            gameState.currentRound--;
+            
+            if (gameState.history.length > 0) {
+                const previousRound = gameState.history[gameState.history.length - 1];
+                const upstreamData = previousRound.players.find(p => p.rank === 'up');
+                if (upstreamData) {
+                    const upstreamPlayer = gameState.players.find(p => p.id === upstreamData.id);
+                    gameState.currentPlayerLevel = upstreamPlayer.level;
+                    gameState.currentBanker = upstreamPlayer.id;
+                }
+            } else {
+                gameState.currentPlayerLevel = 2;
+                gameState.currentBanker = null;
+            }
+
+            saveData();
+            render();
+        }
+
+        function openEditNameModal(playerId) {
+            playModalOpenSound();
+            editingPlayerId = playerId;
+            const player = gameState.players.find(p => p.id === playerId);
+            const input = document.getElementById('editNameInput');
+            input.value = player.name;
+            document.getElementById('editNameModal').classList.add('active');
+            input.focus();
+        }
+
+        function savePlayerName() {
+            playClickSound();
+            const input = document.getElementById('editNameInput');
+            const name = input.value.trim();
+            if (name) {
+                const player = gameState.players.find(p => p.id === editingPlayerId);
+                if (player) {
+                    player.name = name;
+                    saveData();
+                    render();
+                }
+            }
+            closeModal('editNameModal');
+        }
+
+        function openEmojiModal(playerId) {
+            playModalOpenSound();
+            editingPlayerId = playerId;
+            const grid = document.getElementById('emojiGrid');
+            grid.innerHTML = '';
+
+            const player = gameState.players.find(p => p.id === playerId);
+
+            EMOJI_LIST.forEach(emoji => {
+                const item = document.createElement('div');
+                item.className = `emoji-item ${player.avatar === emoji ? 'selected' : ''}`;
+                item.textContent = emoji;
+                item.style.background = getAvatarGradient(emoji);
+                item.onclick = () => selectEmoji(emoji);
+                grid.appendChild(item);
+            });
+
+            document.getElementById('emojiModal').classList.add('active');
+        }
+
+        function selectEmoji(emoji) {
+            playSelectSound();
+            const player = gameState.players.find(p => p.id === editingPlayerId);
+            if (player) {
+                player.avatar = emoji;
+                saveData();
+                render();
+            }
+            closeModal('emojiModal');
+        }
+
+        function showClearConfirm() {
+            playClickSound();
+            if (gameState.history.length === 0) return;
+            showConfirm('清空所有记录', '确定要清空所有历史记录吗？此操作不可撤销。', () => {
+                gameState.history = [];
+                gameState.currentRound = 0;
+                gameState.currentPlayerLevel = 2;
+                gameState.currentBanker = null;
+                gameState.players = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
+                saveData();
+                render();
+            });
+        }
+
+        function showResetConfirm() {
+            playClickSound();
+            showConfirm('重置数据', '确定要重置所有数据吗？此操作将清空玩家信息、头像和历史记录，不可撤销。', () => {
+                resetData();
+            });
+        }
+
+        function showConfirm(title, message, callback) {
+            playModalOpenSound();
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            confirmCallback = callback;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function executeConfirm() {
+            playSuccessSound();
+            if (confirmCallback) {
+                confirmCallback();
+                confirmCallback = null;
+            }
+            closeModal('confirmModal');
+        }
+
+        function closeModal(modalId) {
+            playClickSound();
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            render();
+        });
+
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        document.getElementById('editNameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                savePlayerName();
+            }
+        });
+
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Submit button clicked');
+                submitRound();
+            });
+        }
+    </script>
+</body>
+</html>
