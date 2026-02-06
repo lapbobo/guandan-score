@@ -1139,8 +1139,11 @@
         }
 
         function ensurePlayersStructure() {
+            let playersReset = false;
+            
             if (!gameState.players || gameState.players.length !== 3) {
                 gameState.players = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
+                playersReset = true;
             }
             if (typeof gameState.currentRound !== 'number') {
                 gameState.currentRound = 0;
@@ -1155,12 +1158,17 @@
                 gameState.history = [];
             }
             
-            // 验证currentBanker是否有效
-            if (gameState.currentBanker !== null) {
+            // 只有在players未被重置时才验证currentBanker
+            if (!playersReset && gameState.currentBanker !== null) {
                 const bankerExists = gameState.players.find(p => p.id === gameState.currentBanker);
                 if (!bankerExists) {
                     gameState.currentBanker = null;
                 }
+            }
+            
+            // 如果players被重置，currentBanker也应该重置为null
+            if (playersReset) {
+                gameState.currentBanker = null;
             }
         }
 
@@ -1181,9 +1189,15 @@
         }
 
         function getCurrentBankerName() {
+            console.log('getCurrentBankerName called', {
+                currentBanker: gameState.currentBanker,
+                players: gameState.players
+            });
             if (!gameState.currentBanker) return '-';
             const player = gameState.players.find(p => p.id === gameState.currentBanker);
-            return player ? player.name : '-';
+            const result = player ? player.name : '-';
+            console.log('getCurrentBankerName result:', result);
+            return result;
         }
 
         function render() {
@@ -1194,6 +1208,10 @@
         }
 
         function renderDashboard() {
+            console.log('renderDashboard called', {
+                currentPlayerLevel: gameState.currentPlayerLevel,
+                currentBanker: gameState.currentBanker
+            });
             document.getElementById('currentLevel').textContent = gameState.currentPlayerLevel;
             document.getElementById('currentBanker').textContent = getCurrentBankerName();
         }
@@ -1443,6 +1461,12 @@
             gameState.history.push(roundData);
             gameState.currentPlayerLevel = upstreamPlayer.level;
             gameState.currentBanker = selectedUpstream;
+
+            console.log('Game state updated:', {
+                currentBanker: gameState.currentBanker,
+                upstreamPlayerId: selectedUpstream,
+                upstreamPlayerName: upstreamPlayer.name
+            });
 
             console.log('Saving data and closing modal');
             
